@@ -64,3 +64,60 @@ def load_config(config_file):
 if __name__ == '__main__':
     main()
             
+
+
+
+#Function to download media
+def download(media_url):
+  url = media_url
+
+  try:
+    request_image = requests.get(url)
+    src = request_image.content.decode('utf-8')
+    check_type = re.search(r'<meta name="medium" content=[\'"]?([^\'" >]+)', src)
+    check_type_f = check_type.group()
+    final = re.sub('<meta name="medium" content="', '', check_type_f)
+
+    if final == "image":
+      print("\nDownloading the image...")
+      extract_image_link = re.search(r'meta property="og:image" content=[\'"]?([^\'" >]+)', src)
+      image_link = extract_image_link.group()
+      final = re.sub('meta property="og:image" content="', '', image_link)
+      _response = requests.get(final).content
+      file_size_request = requests.get(final, stream=True)
+      file_size = int(file_size_request.headers['Content-Length'])
+      block_size = 1024 
+      filename = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
+      #t=tqdm(total=file_size, unit='B', unit_scale=True, desc=filename, ascii=True)
+      with open(filename + '.jpg', 'wb') as f:
+        for data in file_size_request.iter_content(block_size):\
+          #t.update(len(data))
+          f.write(data)
+          #t.close()
+          print("Image downloaded successfully")
+
+    if final == "video": 
+      msg = True
+
+      if msg:
+        print("Downloading the video...")
+        extract_video_link = re.search(r'meta property="og:video" content=[\'"]?([^\'" >]+)', src)
+        video_link = extract_video_link.group()
+        final = re.sub('meta property="og:video" content="', '', video_link)
+        _response = requests.get(final).content
+        file_size_request = requests.get(final, stream=True)
+        file_size = int(file_size_request.headers['Content-Length'])
+        block_size = 1024 
+        filename = datetime.strftime(datetime.now(), '%Y-%m-%d-%H-%M-%S')
+        #t=tqdm(total=file_size, unit='B', unit_scale=True, desc=filename, ascii=True)
+        with open(filename + '.mp4', 'wb') as f:
+          for data in file_size_request.iter_content(block_size):
+            #t.update(len(data))
+            f.write(data)
+            #t.close()
+            print("Video downloaded successfully")
+
+            if msg == "no":
+              exit()
+  except Exception as e:
+    print("Error {}".format(e))
